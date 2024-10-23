@@ -1,0 +1,63 @@
+<h2>Jira Group Members</h2>
+<hr>
+<label for="groupName">Group Name: </label>
+<input list="groupMembersDatalist" class="text" placeholder="e.g. AA_Users" id="groupName">
+<datalist id="groupMembersDatalist"></datalist>
+<input type="button" id="groupMembersSubmit" class="aui-button" value="Submit">
+<p id="groupMembersResult"></p>
+<table id="groupMembersListTable"></table>
+
+<script>
+  $(document).ready(function() {
+    $("#groupName").keyup(function(event) {
+      if (event.which == 13) {
+        $("#groupMembersSubmit").click();
+      }
+    });
+ 
+    $("#groupMembersSubmit").on("click", function() {
+      var groupName = $("#groupName").val();
+      if (groupName.length === 0) {
+        $("#groupMembersResult").html("Please input a group name.");
+        $("#groupMembersListTable").html("");
+        return;
+      }
+ 
+      $.ajax({
+        url: "$$ URL FOR YOUR CALLING YOUR SERVER SIDE SCRIPT $$",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ groupName: groupName }),
+        success: function(data) {
+          if (!data || !data.values || data.values.length === 0) {
+            $("#groupMembersResult").html(groupName + " has no members or group not found.");
+            $("#groupMembersListTable").html("");
+            return;
+          }
+ 
+          var groupMembersList = "<tr><th>Count</th><th>Name</th><th>Username</th></tr>";
+          data.values.forEach(function(user, index) {
+            groupMembersList += "<tr><td>" + (index + 1) + "</td><td>" + user.displayName + "</td><td>" + user.name + "</td></tr>";
+          });
+ 
+          $("#groupMembersResult").html("<h3>" + groupName + " Group Members</h3>");
+          $("#groupMembersListTable").html(groupMembersList);
+        },
+        error: function(xhr) {
+          var errorMessage = "Failed to retrieve group members.";
+          if (xhr.responseText) {
+            try {
+              var responseJson = JSON.parse(xhr.responseText);
+              errorMessage += " Error: " + (responseJson.error || xhr.statusText);
+            } catch (e) {
+              errorMessage += " Error processing the error response.";
+            }
+          } else {
+            errorMessage += " No response from server.";
+          }
+          $("#groupMembersResult").html(errorMessage);
+        }
+      });
+    });
+  });
+</script>
